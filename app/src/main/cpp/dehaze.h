@@ -27,11 +27,11 @@ int frameCnt;
 
 Mat GF_smooth(Mat& src, int s, double epsilon,int samplingRate);
 Mat staticMin(Mat& I, int s, double eeps, double alpha, int samplingRate);
-int est_air(Mat& R, Mat& G, Mat& B, int s, double* A_r, double* A_g, double* A_b);
+void est_air(Mat& R, Mat& G, Mat& B, int s, double* A_r, double* A_g, double* A_b);
 Mat est_trans_fast(Mat& R, Mat& G, Mat& B, int s, double eeps, double k, double A_r, double A_g, double A_b);
 Mat rmv_haze(Mat& R, Mat& G, Mat& B, Mat& t, double A_r, double A_g, double A_b);
 //void post_process(vector<Mat>& channels, double thresholdPercentage);
-void processImage(Mat& image, Mat& dehazedImage);
+void dehazeProcess(Mat& image, Mat& dehazedImage);
 
 extern "C" {
 void JNICALL

@@ -11,23 +11,20 @@ Java_com_example_nativeopencvandroidtemplate_MainActivity_dehaze(JNIEnv *env,job
     height = dehazedMat.rows;
     __android_log_print(ANDROID_LOG_INFO, "OpenCV", "Mat rows: %d, cols: %d", dehazedMat.rows, dehazedMat.cols);
 
-    processImage(mat, dehazedMat);
+    dehazeProcess(mat, dehazedMat);
 
     dehazedMat.convertTo(dehazedMat, CV_8UC3);
     __android_log_print(ANDROID_LOG_INFO, "OpenCV", "Converting image to CV_8UC3");
     __android_log_print(ANDROID_LOG_INFO, "OpenCV", "dehazedMat rows: %d, cols: %d", dehazedMat.rows, dehazedMat.cols);
 
-//    if (mat.rows !=  dehazedMat.rows || dehazedImage.cols != image.cols) {
-//        resize(dehazedImage, dehazedImage, Size(image.cols, image.rows));
-//        __android_log_print(ANDROID_LOG_INFO, "OpenCV", "Resized dehazedImage to match original size");
-//    }
+
     __android_log_print(ANDROID_LOG_INFO, "OpenCV", "Mat address: %p", matAddr);
 
 }
 }
 
 // True method for processing
-void processImage(Mat& image, Mat& dehazedImage) {
+void dehazeProcess(Mat& image, Mat& dehazedImage) {
     int s = 24;
     // 压缩分辨率
     double rate = 1.2;
@@ -110,8 +107,9 @@ Mat staticMin(Mat& I, int s, double eps, double alpha, int samplingRate)
 
 //---------------------- DEHAZING FUNCTIONS -------------------//
 // 估计大气光图
-int est_air(Mat& R,Mat& G,Mat& B, int s, double* A_r, double* A_g, double* A_b)
+void est_air(Mat& R,Mat& G,Mat& B, int s, double* A_r, double* A_g, double* A_b)
 {
+    double updateAlpha = 0.2;
     // Based on DCP
     Mat Im = min(min(R, G), B);
 
@@ -122,12 +120,9 @@ int est_air(Mat& R,Mat& G,Mat& B, int s, double* A_r, double* A_g, double* A_b)
     int maxIdx[2] = { 0, 0 };
     minMaxIdx(blur_Im, NULL, NULL, NULL, maxIdx);
 
-    int width = R.cols;
-    *A_r = ((double*)R.data)[maxIdx[0] * R.cols + maxIdx[1]];
-    *A_g = ((double*)G.data)[maxIdx[0] * R.cols + maxIdx[1]];
-    *A_b = ((double*)B.data)[maxIdx[0] * R.cols + maxIdx[1]];
-
-    return 0;
+    *A_r = ((double*)R.data)[maxIdx[0] * R.cols + maxIdx[1]] * updateAlpha + (1 - updateAlpha)  * (*A_r);
+    *A_g = ((double*)G.data)[maxIdx[0] * R.cols + maxIdx[1]] * updateAlpha + (1 - updateAlpha)  * (*A_g);
+    *A_b = ((double*)B.data)[maxIdx[0] * R.cols + maxIdx[1]] *  updateAlpha + (1 - updateAlpha)  * (*A_b);
 }
 
 // 估计透射率
